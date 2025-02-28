@@ -1,0 +1,250 @@
+<!-- templates/examinador/pregunta.html -->
+{% extends 'examinador/base.html' %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pregunta</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <style>
+        body {
+            background-color: #f8f4fc; /* Fondo pastel */
+            color: #3c3c3c; /* Texto neutro */
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            border-radius: 25px;
+        }
+        .btn-primary {
+            background-color: #a4c8e1; /* Azul pastel */
+            border-color: #7caad0;
+        }
+        .btn-primary:hover {
+            background-color: #7caad0;
+            border-color: #6498be;
+        }
+        .btn-secondary {
+            background-color: #f3a6a2; /* Rosa pastel */
+            border-color: #f09792;
+        }
+        .btn-secondary:hover {
+            background-color: #f09792;
+            border-color: #e88783;
+        }
+        .btn-tertiary {
+            background-color:rgb(130, 236, 148); /* Verde pastel */
+            border-color: #2c910e;
+        }
+        .btn-tertiary:hover {
+            background-color:rgb(130, 236, 148);
+            border-color: #2c910e;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        #temporizador {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #7a7a7a;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card p-4">
+            <!-- Temporizador -->
+            <div id="temporizador" class="text-center">Tiempo: 00:00</div>
+            <!-- Pregunta -->
+            <h6 class="text-center">{{ pregunta.pregunta }}</h6>
+            <form id="respuestaForm" class="my-4">
+                <input type="hidden" name="pregunta_id" value="{{ pregunta.id }}">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="respuesta" value="1" id="respuesta1">
+                    <label class="form-check-label" for="respuesta1">{{ pregunta.respuesta1 }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="respuesta" value="2" id="respuesta2">
+                    <label class="form-check-label" for="respuesta2">{{ pregunta.respuesta2 }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="respuesta" value="3" id="respuesta3">
+                    <label class="form-check-label" for="respuesta3">{{ pregunta.respuesta3 }}</label>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="radio" name="respuesta" value="4" id="respuesta4">
+                    <label class="form-check-label" for="respuesta4">{{ pregunta.respuesta4 }}</label>
+                </div>
+            </form>
+            <!-- Botones -->
+            <div class="d-flex justify-content-between">
+                <button id="anteriorBtn" class="btn btn-primary">⤆ Anterior</button>
+                <button id="comprobarBtn" class="btn btn-tertiary">Verificar respuesta ❓</button>
+                <button id="siguienteBtn" class="btn btn-primary">Siguiente ⤇</button>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-secondary" onclick="irConfiguracion()">✎ Ir a Configuración</button>
+                <button id="abrirModalError" class="btn btn-danger">Informar error ❗</button>
+                <button class="btn btn-secondary" onclick="irResultados()">Finalizar examen ☑</button>
+            </div>
+            <!-- Feedback -->
+            <div id="feedback" class="alert mt-4 d-none"></div>
+        </div>
+    </div>
+
+    <!-- Modal para reportar error -->
+    <div class="modal fade" id="modalError" tabindex="-1" aria-labelledby="modalErrorLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="modalErrorLabel">Reportar error en la pregunta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <p>Si encontraste un error en esta pregunta, por favor descríbelo brevemente.</p>
+            <textarea id="comentarioError" class="form-control" rows="3" placeholder="Describe el problema..."></textarea>
+            <input type="hidden" id="preguntaId" value="{{ pregunta.id }}">
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="enviarError">Enviar reporte</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script>
+    window.onload = function () {
+        // Temporizador
+        const startTime = new Date('{{ request.session.hora_inicio }}');
+        function updateTimer() {
+            const now = new Date();
+            const diff = new Date(now - startTime);
+            const minutes = String(diff.getMinutes()).padStart(2, '0');
+            const seconds = String(diff.getSeconds()).padStart(2, '0');
+            document.getElementById('temporizador').textContent = `Tiempo transcurrido: ${minutes}:${seconds}`;
+        }
+        setInterval(updateTimer, 1000);
+
+        // Selección de elementos
+        const comprobarBtn = document.getElementById('comprobarBtn');
+        const siguienteBtn = document.getElementById('siguienteBtn');
+        const anteriorBtn = document.getElementById('anteriorBtn');
+        const respuestas = document.querySelectorAll('input[name="respuesta"]');
+        let respuestaComprobada = false; // Variable para verificar si se ha comprobado
+
+        // Deshabilitar botones "Siguiente" y "Anterior" hasta comprobar
+        siguienteBtn.disabled = true;
+        anteriorBtn.disabled = true;
+
+        // Comprobar respuesta
+        comprobarBtn.addEventListener("click", function () {
+            const form = document.getElementById('respuestaForm');
+            const formData = new FormData(form);
+            fetch('/examinador/comprobar/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const feedback = document.getElementById('feedback');
+                feedback.classList.remove('d-none', 'alert-danger', 'alert-success');
+                feedback.classList.add(data.es_correcta ? 'alert-success' : 'alert-danger');
+                feedback.textContent = data.es_correcta
+                    ? `Correcto: ${data.justificacion}`
+                    : `Incorrecto: ${data.justificacion}`;
+
+                // Deshabilitar las opciones de respuesta después de comprobar
+                respuestas.forEach(input => input.disabled = true);
+
+                // Habilitar botones "Siguiente" y "Anterior"
+                siguienteBtn.disabled = false;
+                anteriorBtn.disabled = false;
+                respuestaComprobada = true;
+            });
+        });
+
+        // Bloquear avance si no se ha pulsado "Comprobar"
+        siguienteBtn.addEventListener("click", function (event) {
+            if (!respuestaComprobada) {
+                event.preventDefault();
+                alert("Debes comprobar tu respuesta antes de continuar.");
+            } else {
+                window.location.href = '/examinador/siguiente/';
+            }
+        });
+
+        anteriorBtn.addEventListener("click", function (event) {
+            if (!respuestaComprobada) {
+                event.preventDefault();
+                alert("Debes comprobar tu respuesta antes de retroceder.");
+            } else {
+                window.location.href = '/examinador/anterior/';
+            }
+        });
+    };
+
+    // Funciones de navegación
+    function irConfiguracion() {
+        window.location.href = '/examinador/';
+    }
+
+    function irResultados() {
+        window.location.href = '/examinador/resultados/';
+    }
+    </script>
+
+    <script>
+    document.getElementById("abrirModalError").addEventListener("click", function() {
+        var modal = new bootstrap.Modal(document.getElementById("modalError"));
+        modal.show();
+    });
+    
+    document.getElementById("enviarError").addEventListener("click", function() {
+        const preguntaId = document.getElementById("preguntaId").value;
+        const comentario = document.getElementById("comentarioError").value.trim();
+    
+        fetch("/examinador/reportar_error/", {
+            method: "POST",
+            body: new URLSearchParams({
+                'pregunta_id': preguntaId,
+                'comentario': comentario
+            }),
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById("modalError"));
+                modal.hide();
+            }
+        })
+        .catch(error => {
+            console.error("Error al reportar:", error);
+            alert("Hubo un problema al reportar el error.");
+        });
+    });
+    </script>
+    
+
+</body>
+</html>
+
+{% endblock %}
