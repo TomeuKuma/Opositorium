@@ -30,7 +30,8 @@ DEBUG = os.environ.get('DEBUG')
 CSRF_TRUSTED_ORIGINS = ["https://opositorium.vercel.app"]
 
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+#ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = ['3.67.176.73', 'localhost']
 
 # Application definition
 
