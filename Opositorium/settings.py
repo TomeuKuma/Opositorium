@@ -31,7 +31,7 @@ CSRF_TRUSTED_ORIGINS = ["https://opositorium.vercel.app"]
 
 
 #ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
-ALLOWED_HOSTS = ['opositorium.es', 'www.opositorium.es', '3.67.176.73', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['opositorium.es', 'www.opositorium.es', '127.0.0.1', 'localhost']
 
 # Application definition
 
