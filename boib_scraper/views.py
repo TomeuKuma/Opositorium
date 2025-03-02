@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from bs4 import XMLParsedAsHTMLWarning
 from django.db import models
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.utils.timezone import now, timedelta
 from .models import AnuncioBoib
 
@@ -280,7 +281,7 @@ def get_max_url_id():
     max_url_id = AnuncioBoib.objects.aggregate(max_id=models.Max("url_id"))["max_id"]
     return max_url_id if max_url_id is not None else '12035'
 
-def update_db():
+def update_db(request):
     current_id = int(current_bulletin_id())
     max_url_id = int(get_max_url_id()) 
     print('El ultimo BOIB publicado es:', current_id)
@@ -296,14 +297,15 @@ def update_db():
                 dataframe_to_db(df)
                 print(f'BOIB {max_url_id + 1} guardado con éxito')
             max_url_id += 1
-        return f"BD actualizada! ID del último BOIB: {str(max_url_id + 1)}"
+    return JsonResponse({"message": f"BD actualizada! ID del último BOIB: {str(max_url_id)}"})
+    #return f"BD actualizada! ID del último BOIB: {str(max_url_id + 1)}"
 
 def anuncios_recientes(request):
     """Actualiza la base de datos y la vuelca en una tabla que se renderiza en
     'boib_scraper/anuncios.html'
     """
     #Actualiza la base de datos
-    update_db()
+    #update_db()
     #boib = BoibScraper().get_data()
     #print(boib)
     # Obtener la fecha de hace 20 días

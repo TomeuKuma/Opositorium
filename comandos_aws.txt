@@ -1,0 +1,47 @@
+#CONFIGURACION POR TERMINAL DE AWS SOBRE UBUNTU CON GUNICORN Y NGINX#
+
+##########GUNICORN##########
+
+#Ver Errores GUNICORN#
+sudo journalctl -u gunicorn --no-pager --since "10 minutes ago"
+*también se puede usar:
+sudo tail -n 50 /var/log/gunicorn/error.log
+
+#Editar configuración Gunicorn#
+sudo nano /etc/systemd/system/gunicorn.service
+*Al acabar de editar, guardar con Ctrl + O, Intro y después salir con Ctrl + X
+
+#REINICIAR GUNICORN#
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+
+##########NGINX##########
+#Ver Errores NGINX (ultimos 50)#
+sudo tail -n 50 /var/log/nginx/error.log
+
+#Editar configuración NGINX#
+sudo nano /etc/nginx/sites-available/Opositorium
+*Opositorium es el nombre de proecto de aws
+*Al acabar de editar, guardar con Ctrl + O, Intro y después salir con Ctrl + X
+*Se puede verificar que la edición se ha hecho correctamente con:
+sudo nginx -t
+
+#REINICIAR NGINX#
+sudo systemctl restart nginx
+
+
+##########VIRTUAL ENVIRONEMENT##########
+#Crear el entorno con nombre 'venv'#
+python3 -m venv venv
+#Activar el entorno con nombre 'venv'#
+source venv/bin/activate
+#Instalar los modulos del archivo requirements.txt en el entorno con nombre 'venv'#
+pip install -r requirements.txt
+
+##########VARIABLES DE ENTORNO##########
+#Crear un archivo .env para contener las variables de entorno#
+*ubunto es el nombre del usuario y Opositorium es el nombre de la carpeta raiz del proyecto django
+nano /home/ubuntu/Opositorium/.env
+*Ctrl+X para salid, Y para guardar, Enter
+#Verificar que se ha creado:
+cat /home/ubuntu/Opositorium/.env

@@ -58,7 +58,7 @@ def procesar_anuncio(request, numero_url):
         
         if run_status.status in ["completed", "failed", "cancelled"]:
             break
-        time.sleep(2)
+        #time.sleep(2)
     
     # Obtener la respuesta del asistente y guardar en la base de datos
     if run_status.status == "completed":
